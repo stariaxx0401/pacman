@@ -48,10 +48,11 @@ int main() {
                 window.close();
         }
 
-        // bir önceki framei siler yoksa eski görüntü üstüne çizilir
+        // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
-
-        // grid sistemi tasarlandı 
+        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu(-1.0f duvarlar arasında ince siyah çizgi yapısı sağlar cellsize olsaydı birbirine girerdi )
+        sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
+        
 
         window.display();
     }
