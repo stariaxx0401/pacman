@@ -57,6 +57,7 @@ public:
 int main() {
     // 800x600 yerine grid yapısına tam oturan pencere oluşturuldu
     sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE), "Pacman Test"); 
+    Pacman player;
 
     // pencere açık olduğu sürece çalışır
     while (window.isOpen()) {
@@ -105,7 +106,9 @@ int main() {
               }// Sütun döngüsü kapanır
 
         } // Satır döngüsü kapanır
-       
+        // Pacmani ekrana çizer
+        player.draw(window);
+        // Çizilen her şeyi ekrana yansıtır
         window.display();
     }// while kapanır
 
