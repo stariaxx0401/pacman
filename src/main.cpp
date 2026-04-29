@@ -32,10 +32,31 @@ int map[MAP_ROWS][MAP_COLS] = {
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+class Pacman {
+public:
+    // Pacmani temsil eden daire şekli
+    sf::CircleShape shape;
+    float speed = 2.0f; // Pacmanin hareket hızı
+
+    Pacman() {
+        // Yarıçapı hücreden biraz küçük yapıyoruz yollara rahat sığsın
+        shape.setRadius(CELL_SIZE / 2 - 2); 
+        shape.setFillColor(sf::Color::Yellow); // Sarı Pacman
+        
+        // Başlangıç pozisyonu= Haritada 1.satır 1.sütun 
+        // +2 hücre içinde tam ortalı durması
+        shape.setPosition(1 * CELL_SIZE + 2, 1 * CELL_SIZE + 2); 
+    }
+
+    // Pacmani ekrana çizmek için yardımcı fonksiyon
+    void draw(sf::RenderWindow& window) {
+        window.draw(shape);
+    }
+};
 
 int main() {
     // 800x600 yerine grid yapısına tam oturan pencere oluşturuldu
-    sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE), "Pacman Test");
+    sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE), "Pacman Test"); 
 
     // pencere açık olduğu sürece çalışır
     while (window.isOpen()) {
@@ -50,12 +71,13 @@ int main() {
 
         // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
-        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu
+        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu(-1.0f duvarlar arasında ince siyah çizgi yapısı sağlar cellsize olsaydı birbirine girerdi )
         sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
         // Duvarları mavi renge boyar
         wall.setFillColor(sf::Color::Blue);
         // Yollar için yem şablonu
         sf::CircleShape food(2); 
+        // Yemi beyaz renge boyar
         food.setFillColor(sf::Color::White);
 
         // Her satır ve sütunu dolaşarak haritayı ekrana çizer
@@ -79,11 +101,13 @@ int main() {
                     // -2 = Obje payını düşer
                     food.setPosition(col * CELL_SIZE + CELL_SIZE / 2 - 2, row * CELL_SIZE + CELL_SIZE / 2 - 2);
                     window.draw(food);
-                }
-            }
-        }
+                } // else if kapanır
+              }// Sütun döngüsü kapanır
+
+        } // Satır döngüsü kapanır
+       
         window.display();
-    }
+    }// while kapanır
 
     return 0; 
 }
