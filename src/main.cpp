@@ -1,7 +1,7 @@
-#include <SFML/Graphics.hpp> 
+#include <SFML/Graphics.hpp>
 
-// hücre boyutu 
-const int CELL_SIZE = 20; 
+// hücre boyutu
+const int CELL_SIZE = 20;
 
 // harita boyutu
 const int MAP_ROWS = 21;
@@ -50,10 +50,13 @@ int main() {
 
         // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
-        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu(-1.0f duvarlar arasında ince siyah çizgi yapısı sağlar cellsize olsaydı birbirine girerdi )
+        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu
         sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
-         // Duvarları mavi renge boyar
+        // Duvarları mavi renge boyar
         wall.setFillColor(sf::Color::Blue);
+        // Yollar için yem şablonu
+        sf::CircleShape food(2); 
+        food.setFillColor(sf::Color::White);
 
         // Her satır ve sütunu dolaşarak haritayı ekrana çizer
         for (int row = 0; row < MAP_ROWS; row++)
@@ -68,13 +71,19 @@ int main() {
                     wall.setPosition(col * CELL_SIZE, row * CELL_SIZE);
                     window.draw(wall);
                 }
+                // map te 0 varsa o yol
+               else if (map[row][col] == 0)
+                {   // col*CELL_SIZE = Sütunu bulur
+                    // row*CELL_SIZE = Satır bulur
+                    // + CELL_SIZE / 2 = Merkeze gider
+                    // -2 = Obje payını düşer
+                    food.setPosition(col * CELL_SIZE + CELL_SIZE / 2 - 2, row * CELL_SIZE + CELL_SIZE / 2 - 2);
+                    window.draw(food);
+                }
             }
         }
-
-        
-
         window.display();
     }
 
-    return 0;
+    return 0; 
 }
