@@ -48,24 +48,40 @@ public:
         // +2 hücre içinde tam ortalı durması
         shape.setPosition(1 * CELL_SIZE + 2, 1 * CELL_SIZE + 2); 
     }
-
-    void handleInput() {
-        // Klavye ok tuşlarına basıldığında Pacmani hareket ettirir
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {  
-            // Yön tuşlarına basıldığında shape.move() ile hareket ettirir  
-            shape.move(0, -speed);  
+    // Kullanıcıdan gelen inputa göre pacmani hareket ettirir ve duvarları kontrol eder
+    void handleInput(int mapArray[MAP_ROWS][MAP_COLS]) {
+        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler       
+        float nextX = shape.getPosition().x;
+       // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler  
+        float nextY = shape.getPosition().y;
+        // Klavye yön tuşlarına basıldığında hareket ettirir
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
+            // Yukarı hareket  
+            nextY -= speed; 
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { 
             // Aşağı hareket
-            shape.move(0, speed);
+            nextY += speed;
         } 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
             // Sola hareket
-            shape.move(-speed, 0); 
+            nextX -= speed; 
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) { 
             // Sağa hareket
-            shape.move(speed, 0);
+            nextX += speed;
+        }
+
+        // Koordinatları grid hücresi indislerine çeviriyoruz
+        int gridCol = (nextX + 2) / CELL_SIZE;
+        int gridRow = (nextY + 2) / CELL_SIZE;
+
+        // Harita sınırları dahilinde olup olmadığını ve duvar olup olmadığını denetliyoruz
+        if (gridRow >= 0 && gridRow < MAP_ROWS && gridCol >= 0 && gridCol < MAP_COLS) {
+            if (mapArray[gridRow][gridCol] != 1) {
+                // Duvar değilse hareket etmesine izin ver
+                shape.setPosition(nextX, nextY);
+            }
         }
     }
 
@@ -108,8 +124,8 @@ int main() {
         // Yemi beyaz renge boyar
         food.setFillColor(sf::Color::White);
 
-        // Kullanıcıdan gelen inputa göre pacmani hareket ettirir
-        player.handleInput();
+        // Kullanıcıdan gelen inputa göre pacmani hareket ettirir ve duvarları kontrol eder
+        player.handleInput(map);
 
         // Her satır ve sütunu dolaşarak haritayı ekrana çizer
         for (int row = 0; row < MAP_ROWS; row++)
