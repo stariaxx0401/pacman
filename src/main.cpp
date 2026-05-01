@@ -32,6 +32,7 @@ int map[MAP_ROWS][MAP_COLS] = {
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+
 class Pacman {
 public:
     // Pacmani temsil eden daire şekli
@@ -48,6 +49,26 @@ public:
         shape.setPosition(1 * CELL_SIZE + 2, 1 * CELL_SIZE + 2); 
     }
 
+    void handleInput() {
+        // Klavye ok tuşlarına basıldığında Pacmani hareket ettirir
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {  
+            // Yön tuşlarına basıldığında shape.move() ile hareket ettirir  
+            shape.move(0, -speed);  
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { 
+            // Aşağı hareket
+            shape.move(0, speed);
+        } 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
+            // Sola hareket
+            shape.move(-speed, 0); 
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) { 
+            // Sağa hareket
+            shape.move(speed, 0);
+        }
+    }
+
     // Pacmani ekrana çizmek için yardımcı fonksiyon
     void draw(sf::RenderWindow& window) {
         window.draw(shape);
@@ -57,6 +78,10 @@ public:
 int main() {
     // 800x600 yerine grid yapısına tam oturan pencere oluşturuldu
     sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE), "Pacman Test"); 
+    
+    // HIZ SORUNUNU ÇÖZEN SATIR:
+    window.setFramerateLimit(60); 
+
     Pacman player;
 
     // pencere açık olduğu sürece çalışır
@@ -72,14 +97,19 @@ int main() {
 
         // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
-        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu(-1.0f duvarlar arasında ince siyah çizgi yapısı sağlar cellsize olsaydı birbirine girerdi )
+        
+        // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu
         sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
         // Duvarları mavi renge boyar
         wall.setFillColor(sf::Color::Blue);
+        
         // Yollar için yem şablonu
         sf::CircleShape food(2); 
         // Yemi beyaz renge boyar
         food.setFillColor(sf::Color::White);
+
+        // Kullanıcıdan gelen inputa göre pacmani hareket ettirir
+        player.handleInput();
 
         // Her satır ve sütunu dolaşarak haritayı ekrana çizer
         for (int row = 0; row < MAP_ROWS; row++)
@@ -95,19 +125,21 @@ int main() {
                     window.draw(wall);
                 }
                 // map te 0 varsa o yol
-               else if (map[row][col] == 0)
-                {   // col*CELL_SIZE = Sütunu bulur
+                else if (map[row][col] == 0)
+                {  
+                    // col*CELL_SIZE = Sütunu bulur
                     // row*CELL_SIZE = Satır bulur
                     // + CELL_SIZE / 2 = Merkeze gider
                     // -2 = Obje payını düşer
                     food.setPosition(col * CELL_SIZE + CELL_SIZE / 2 - 2, row * CELL_SIZE + CELL_SIZE / 2 - 2);
                     window.draw(food);
                 } // else if kapanır
-              }// Sütun döngüsü kapanır
-
+            }// Sütun döngüsü kapanır
         } // Satır döngüsü kapanır
+
         // Pacmani ekrana çizer
         player.draw(window);
+
         // Çizilen her şeyi ekrana yansıtır
         window.display();
     }// while kapanır
