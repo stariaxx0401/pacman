@@ -1,4 +1,5 @@
 #include <SFML/Graphics.hpp>
+#include <cmath> // Açısal ve matematiksel işlemler için
 
 // hücre boyutu
 const int CELL_SIZE = 20;
@@ -35,46 +36,81 @@ int map[MAP_ROWS][MAP_COLS] = {
 
 class Pacman {
 public:
-    // Pacmani temsil eden daire şekli
-    sf::CircleShape shape;
+    // Dairesel şekil yerine ağız açma/kapama kontrolü için çokgen kullanıldı
+    sf::ConvexShape shape;
     float speed = 2.0f; // Pacmanin hareket hızı
+    
+    // Ağız animasyonu için değişkenler
+    sf::Clock animationClock; // Animasyon zamanlayıcısı
+    float biteAngle = 30.0f;  // Ağzın açısını kontrol eder
+    bool biting = false;      // Ağzın açıldığını veya kapandığını belirler
+    int currentDirection = 0; // 0: Sağ, 1: Sol, 2: Yukarı, 3: Aşağı
 
     Pacman() {
-        // Yarıçapı hücreden biraz küçük yapıyoruz yollara rahat sığsın
-        shape.setRadius(CELL_SIZE / 2 - 2); 
         shape.setFillColor(sf::Color::Yellow); // Sarı Pacman
         
         // Başlangıç pozisyonu= Haritada 1.satır 1.sütun 
         // +2 hücre içinde tam ortalı durması
         float radius = CELL_SIZE / 2 - 2;
         shape.setPosition(1 * CELL_SIZE + (CELL_SIZE / 2) - radius, 1 * CELL_SIZE + (CELL_SIZE / 2) - radius); 
+        
+        updateShape(radius);
     }
     
+    // Şekli ve ağız açıklığını hesaplayan fonksiyon
+    void updateShape(float radius) {
+        int pointCount = 20; // Daire benzeri görünüm için nokta sayısı
+        shape.setPointCount(pointCount + 2); // Merkez + yay noktaları + ağız kapama noktası
+        
+        shape.setPoint(0, sf::Vector2f(radius, radius)); // Merkez nokta
+        
+        // Ağzın açısını radyan cinsine çevir
+        float radBite = (biteAngle / 2.0f) * 3.14159f / 180.0f;
+        
+        for (int i = 0; i <= pointCount; i++) {
+            float angle = radBite + i * (2 * 3.14159f - 2 * radBite) / pointCount;
+            float x = radius + radius * std::cos(angle);
+            float y = radius + radius * std::sin(angle);
+            shape.setPoint(i + 1, sf::Vector2f(x, y));
+        }
+    }
+
     // Kullanıcıdan gelen inputa göre pacmani hareket ettirir ve duvarları kontrol eder
     void handleInput(int mapArray[MAP_ROWS][MAP_COLS]) {
-        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler        
+        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler         
         float nextX = shape.getPosition().x;
         float nextY = shape.getPosition().y;
         
         // Klavye yön tuşlarına basıldığında hareket ettirir
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
-            // Yukarı hareket  
-            nextY -= speed; 
+            currentDirection = 2; // Yönü yukarı ayarla
+            // Dikey hareket ederken yatayda mükemmel hizala (tam sütun ortası)
+            int col = (shape.getPosition().x + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
+            nextX = col * CELL_SIZE + (CELL_SIZE / 2) - (CELL_SIZE / 2 - 2);
+            nextY -= speed; // Yukarı hareket planla
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { 
-            // Aşağı hareket
-            nextY += speed;
+            currentDirection = 3; // Yönü aşağı ayarla
+            // Dikey hareket ederken yatayda mükemmel hizala (tam sütun ortası)
+            int col = (shape.getPosition().x + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
+            nextX = col * CELL_SIZE + (CELL_SIZE / 2) - (CELL_SIZE / 2 - 2);
+            nextY += speed; // Aşağı hareket planla
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
-            // Sola hareket
-            nextX -= speed; 
+            currentDirection = 1; // Yönü sola ayarla
+            // Yatay hareket ederken dikeyde mükemmel hizala (tam satır ortası)
+            int row = (shape.getPosition().y + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
+            nextY = row * CELL_SIZE + (CELL_SIZE / 2) - (CELL_SIZE / 2 - 2);
+            nextX -= speed; // Sola hareket planla
         } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) { 
-            // Sağa hareket
-            nextX += speed;
+            currentDirection = 0; // Yönü sağa ayarla
+            // Yatay hareket ederken dikeyde mükemmel hizala (tam satır ortası)
+            int row = (shape.getPosition().y + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
+            nextY = row * CELL_SIZE + (CELL_SIZE / 2) - (CELL_SIZE / 2 - 2);
+            nextX += speed; // Sağa hareket planla
         }
 
         // Karakterin köşe ve merkez hesaplamasını tam dairenin kapladığı alanı baz alarak yapıyoruz.
         float radius = CELL_SIZE / 2 - 2;
-        float center_offset = radius; // Dairenin tam ortası
-        
+
         // Karakterin etrafındaki 4 noktanın (köşelerin) grid koordinatlarını kontrol et
         int leftCol = (nextX) / CELL_SIZE;
         int rightCol = (nextX + (radius * 2)) / CELL_SIZE;
@@ -92,11 +128,55 @@ public:
                 shape.setPosition(nextX, nextY);
             }
         }
+
+        // Animasyon zamanlayıcısını güncelle
+        updateAnimation();
+    }
+    
+    // Ağız animasyonunu kontrol eden fonksiyon
+    void updateAnimation() {
+        // Hızı en yüksek seviyeye çıkarmak için süre 0.015f olarak ayarlandı ve artış miktarı 8.0f'e yükseltildi
+        if (animationClock.getElapsedTime().asSeconds() > 0.015f) {
+            if (biting) {
+                biteAngle += 8.0f;
+                if (biteAngle >= 55.0f) biting = false;
+            } else {
+                biteAngle -= 8.0f;
+                if (biteAngle <= 5.0f) biting = true;
+            }
+            
+            float radius = CELL_SIZE / 2 - 2;
+            updateShape(radius);
+            animationClock.restart();
+        }
     }
 
     // Pacmani ekrana çizmek için yardımcı fonksiyon
     void draw(sf::RenderWindow& window) {
+        float rotation = 0.0f;
+        
+        // Yöne göre çokgenin açısını belirler
+        if (currentDirection == 1) rotation = 180.0f; // Sola dön
+        else if (currentDirection == 2) rotation = 270.0f; // Yukarı dön
+        else if (currentDirection == 3) rotation = 90.0f; // Aşağı dön
+        
+        float radius = CELL_SIZE / 2 - 2;
+        
+        // Koordinat kaymasını önlemek için koordinat ve merkez hesaplamasını birleştiriyoruz
+        shape.setOrigin(radius, radius);
+        
+        // Şeklin pozisyonunu merkezine alarak doğru hizalanmasını sağlıyoruz
+        sf::Vector2f pos = shape.getPosition();
+        shape.setPosition(pos.x + radius, pos.y + radius);
+        
+        shape.setRotation(rotation);
+        
+        // Çizimi gerçekleştir
         window.draw(shape);
+        
+        // Pozisyon ve orijin sıfırlaması
+        shape.setPosition(pos.x, pos.y);
+        shape.setOrigin(0, 0);
     }
 };
 
