@@ -46,40 +46,49 @@ public:
         
         // Başlangıç pozisyonu= Haritada 1.satır 1.sütun 
         // +2 hücre içinde tam ortalı durması
-        shape.setPosition(1 * CELL_SIZE + 2, 1 * CELL_SIZE + 2); 
+        float radius = CELL_SIZE / 2 - 2;
+        shape.setPosition(1 * CELL_SIZE + (CELL_SIZE / 2) - radius, 1 * CELL_SIZE + (CELL_SIZE / 2) - radius); 
     }
+    
     // Kullanıcıdan gelen inputa göre pacmani hareket ettirir ve duvarları kontrol eder
     void handleInput(int mapArray[MAP_ROWS][MAP_COLS]) {
-        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler       
+        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler        
         float nextX = shape.getPosition().x;
-       // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler  
         float nextY = shape.getPosition().y;
+        
         // Klavye yön tuşlarına basıldığında hareket ettirir
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {
             // Yukarı hareket  
             nextY -= speed; 
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { 
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Down)) { 
             // Aşağı hareket
             nextY += speed;
-        } 
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
             // Sola hareket
             nextX -= speed; 
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) { 
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Right)) { 
             // Sağa hareket
             nextX += speed;
         }
 
-        // Koordinatları grid hücresi indislerine çeviriyoruz
-        int gridCol = (nextX + 2) / CELL_SIZE;
-        int gridRow = (nextY + 2) / CELL_SIZE;
+        // Karakterin köşe ve merkez hesaplamasını tam dairenin kapladığı alanı baz alarak yapıyoruz.
+        float radius = CELL_SIZE / 2 - 2;
+        float center_offset = radius; // Dairenin tam ortası
+        
+        // Karakterin etrafındaki 4 noktanın (köşelerin) grid koordinatlarını kontrol et
+        int leftCol = (nextX) / CELL_SIZE;
+        int rightCol = (nextX + (radius * 2)) / CELL_SIZE;
+        int topRow = (nextY) / CELL_SIZE;
+        int bottomRow = (nextY + (radius * 2)) / CELL_SIZE;
 
         // Harita sınırları dahilinde olup olmadığını ve duvar olup olmadığını denetliyoruz
-        if (gridRow >= 0 && gridRow < MAP_ROWS && gridCol >= 0 && gridCol < MAP_COLS) {
-            if (mapArray[gridRow][gridCol] != 1) {
-                // Duvar değilse hareket etmesine izin ver
+        if (topRow >= 0 && bottomRow < MAP_ROWS && leftCol >= 0 && rightCol < MAP_COLS) {
+            // Hiçbir köşe duvara çarpmıyorsa hareket etmesine izin ver
+            if (mapArray[topRow][leftCol] != 1 && 
+                mapArray[topRow][rightCol] != 1 && 
+                mapArray[bottomRow][leftCol] != 1 && 
+                mapArray[bottomRow][rightCol] != 1) {
+                
                 shape.setPosition(nextX, nextY);
             }
         }
