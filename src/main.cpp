@@ -77,7 +77,7 @@ public:
 
     // Kullanıcıdan gelen inputa göre pacmani hareket ettirir ve duvarları kontrol eder
     void handleInput(int mapArray[MAP_ROWS][MAP_COLS]) {
-        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler         
+        // Şimdiki pozisyonu alır ve hareket etmek istediği yönü belirler          
         float nextX = shape.getPosition().x;
         float nextY = shape.getPosition().y;
         
@@ -94,7 +94,7 @@ public:
             int col = (shape.getPosition().x + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
             nextX = col * CELL_SIZE + (CELL_SIZE / 2) - (CELL_SIZE / 2 - 2);
             nextY += speed; // Aşağı hareket planla
-        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {  
+        } else if (sf::Keyboard::isKeyPressed(sf::Keyboard::Left)) {   
             currentDirection = 1; // Yönü sola ayarla
             // Yatay hareket ederken dikeyde mükemmel hizala (tam satır ortası)
             int row = (shape.getPosition().y + (CELL_SIZE / 2 - 2)) / CELL_SIZE;
@@ -126,6 +126,17 @@ public:
                 mapArray[bottomRow][rightCol] != 1) {
                 
                 shape.setPosition(nextX, nextY);
+
+                // Nokta Yeme Sistemi: Karakterin merkez koordinatlarını al
+                int centerGridX = (nextX + radius) / CELL_SIZE;
+                int centerGridY = (nextY + radius) / CELL_SIZE;
+
+                if (centerGridX >= 0 && centerGridX < MAP_COLS && centerGridY >= 0 && centerGridY < MAP_ROWS) {
+                    // Eğer yol hücresindeyse (değer 0) yenilmiş olarak işaretle (değer 2)
+                    if (mapArray[centerGridY][centerGridX] == 0) {
+                        mapArray[centerGridY][centerGridX] = 2;
+                    }
+                }
             }
         }
 
@@ -221,6 +232,9 @@ int main() {
         {
             for (int col = 0; col < MAP_COLS; col++)
             {
+                // Sol üstteki (0,0) koordinatının çizilmesini engeller
+                if (row == 0 && col == 0) continue;
+
                 // map te 1 varsa o duvar
                 if (map[row][col] == 1)
                 {
