@@ -232,9 +232,8 @@ int main() {
         {
             for (int col = 0; col < MAP_COLS; col++)
             {
-                // Sol üstteki (0,0) koordinatının çizilmesini engeller
-                if (row == 0 && col == 0) continue;
-
+                // Artık (0,0) koordinatını atlamıyoruz ve mavi renkli duvar olarak çiziyoruz.
+                
                 // map te 1 varsa o duvar
                 if (map[row][col] == 1)
                 {
