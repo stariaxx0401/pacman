@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
 #include <cmath> // Açısal ve matematiksel işlemler için
-
+#include <string> // puan gösterimi için
 // hücre boyutu
 const int CELL_SIZE = 20;
 
@@ -39,6 +39,7 @@ public:
     // Dairesel şekil yerine ağız açma/kapama kontrolü için çokgen kullanıldı
     sf::ConvexShape shape;
     float speed = 2.0f; // Pacmanin hareket hızı
+    int score = 0; // Pacmanin yediği noktaların sayısı 
     
     // Ağız animasyonu için değişkenler
     sf::Clock animationClock; // Animasyon zamanlayıcısı
@@ -135,6 +136,7 @@ public:
                     // Eğer yol hücresindeyse (değer 0) yenilmiş olarak işaretle (değer 2)
                     if (mapArray[centerGridY][centerGridX] == 0) {
                         mapArray[centerGridY][centerGridX] = 2;
+                        score+=10; // Her yenen nokta için 10 puan ekle
                     }
                 }
             }
@@ -193,11 +195,19 @@ public:
 
 int main() {
     // 800x600 yerine grid yapısına tam oturan pencere oluşturuldu
-    sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE), "Pacman Test"); 
+    sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE+30), "Pacman Test"); 
     
     // HIZ SORUNUNU ÇÖZEN SATIR:
     window.setFramerateLimit(60); 
-
+    sf::Font font; // Puan göstermek için font yükleniyor
+    font.loadFromFile("arial.ttf"); // Puan göstermek için font yükleniyor
+    
+    sf::Text scoreText; // Puan göstermek için text objesi oluşturuluyor
+    scoreText.setFont(font); // Puan göstermek için font atanıyor
+    scoreText.setCharacterSize(16); // Puan göstermek için karakter boyutu ayarlanıyor
+    scoreText.setFillColor(sf::Color::White); // Puan göstermek için renk beyaz olarak ayarlanıyor
+    scoreText.setPosition(5, MAP_ROWS * CELL_SIZE +5); // Puan göstermek için konum
+   
     Pacman player;
 
     // pencere açık olduğu sürece çalışır
@@ -257,7 +267,8 @@ int main() {
 
         // Pacmani ekrana çizer
         player.draw(window);
-
+        scoreText.setString("Puan: " + std::to_string(player.score)); // Puanı günceller
+        window.draw(scoreText); // Puanı ekrana çizer
         // Çizilen her şeyi ekrana yansıtır
         window.display();
     }// while kapanır
