@@ -33,6 +33,26 @@ int map[MAP_ROWS][MAP_COLS] = {
     {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
+class Ghost{
+    public:
+        sf::CircleShape shape; // Hayaletin görsel temsili için dairesel şekil kullanıldı
+        float speed = 1.5f; // Hayaletin hareket hızı
+        int currentDirection = 0; // 0: Sağ, 1: Sol, 2: Yukarı, 3: Aşağı
+        sf::Color color; // Hayaletin rengi
+        
+        Ghost(float startX, float startY, sf::Color ghostColor) {
+            color = ghostColor;
+            shape.setRadius(CELL_SIZE / 2 - 2); // Hayaletin yarıçapı
+            shape.setFillColor(ghostColor); // Hayaletin rengi
+            shape.setPosition(startX, startY); // Başlangıç pozisyonu
+        }
+        void draw(sf::RenderWindow& window) {
+            window.draw(shape);// Hayaleti ekrana çizer
+        }
+        void move(){
+
+        }
+    };
 
 class Pacman {
 public:
@@ -206,8 +226,8 @@ int main() {
     scoreText.setFont(font); // Puan göstermek için font atanıyor
     scoreText.setCharacterSize(16); // Puan göstermek için karakter boyutu ayarlanıyor
     scoreText.setFillColor(sf::Color::White); // Puan göstermek için renk beyaz olarak ayarlanıyor
-    scoreText.setPosition(5, MAP_ROWS * CELL_SIZE +5); // Puan göstermek için konum
-   
+    scoreText.setPosition(5, MAP_ROWS * CELL_SIZE +5); // Puan göstermek için konum ayarlanıyor
+    
     Pacman player;
 
     // pencere açık olduğu sürece çalışır
