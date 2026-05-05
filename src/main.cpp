@@ -229,6 +229,16 @@ int main() {
     scoreText.setPosition(5, MAP_ROWS * CELL_SIZE +5); // Puan göstermek için konum ayarlanıyor
     
     Pacman player;
+    
+
+    float radius = CELL_SIZE / 2 - 2;
+    float offsetX= (CELL_SIZE / 2) - radius;
+    float offsetY= (CELL_SIZE / 2) - radius;
+
+    Ghost blinky(9*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color::Red); // Blinky hayaletini oluşturuyoruz
+    Ghost pinky(9*CELL_SIZE+offsetX,8*CELL_SIZE+offsetY,sf::Color::Magenta); // Pinky hayaletini oluşturuyoruz
+    Ghost inky(8*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color::Cyan); // Inky hayaletini oluşturuyoruz
+    Ghost clyde(10*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color(255, 127, 0)); // Clyde hayaletini oluşturuyoruz (turuncu renk)
 
     // pencere açık olduğu sürece çalışır
     while (window.isOpen()) {
@@ -287,6 +297,10 @@ int main() {
 
         // Pacmani ekrana çizer
         player.draw(window);
+        blinky.draw(window);// Blinky hayaletini ekrana çizer
+        pinky.draw(window);//  Pinky hayaletini ekrana çizer
+        inky.draw(window);//   Inky hayaletini ekrana çizer
+        clyde.draw(window);//  Clyde hayaletini ekrana çizer
         scoreText.setString("Puan: " + std::to_string(player.score)); // Puanı günceller
         window.draw(scoreText); // Puanı ekrana çizer
         // Çizilen her şeyi ekrana yansıtır
