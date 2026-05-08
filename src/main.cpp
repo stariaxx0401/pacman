@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath> // Açısal ve matematiksel işlemler için
 #include <string> // puan gösterimi için
+#include <cstdlib> // Rastgele yön seçimi için
 // hücre boyutu
 const int CELL_SIZE = 20;
 
@@ -49,9 +50,35 @@ class Ghost{
         void draw(sf::RenderWindow& window) {
             window.draw(shape);// Hayaleti ekrana çizer
         }
-        void move(){
+        void move(int mapArray[MAP_ROWS][MAP_COLS]) {
+            float x = shape.getPosition().x;// Hayaletin mevcut x koordinatı
+            float y = shape.getPosition().y;// Hayaletin mevcut y koordinatı
+            float radius = CELL_SIZE / 2 - 2;// Hayaletin yarıçapı
 
-        }
+            float nextX = x; float nextY = y;
+            if(currentDirection == 0) nextX += speed; // Sağa hareket planla
+            else if(currentDirection == 1) nextX -= speed; // Sola hareket planla
+            else if(currentDirection == 2) nextY -= speed; // Yukarı hareket planla
+            else if(currentDirection == 3) nextY += speed; // Aşağı hareket planla
+
+            int leftCol = (int)(nextX) / CELL_SIZE; // Hayaletin sol köşesinin grid sütunu
+            int rightCol = (int)(nextX + radius * 2) / CELL_SIZE; // Hayaletin sağ köşesinin grid sütunu
+            int topRow = (int)(nextY) / CELL_SIZE; // Hayaletin üst köşesinin grid satırı
+            int bottomRow = (int)(nextY + radius * 2) / CELL_SIZE; // Hayaletin alt köşesinin grid satırı
+
+            bool canMove = (topRow >= 0 && bottomRow < MAP_ROWS && leftCol >= 0 && rightCol < MAP_COLS) &&
+                           (mapArray[topRow][leftCol] != 1 && mapArray[topRow][rightCol] != 1 && mapArray[bottomRow][leftCol] != 1 && mapArray[bottomRow][rightCol] != 1);// Hayaletin hareket edebileceği kontrolü
+       
+       
+            if(canMove){
+                shape.setPosition(nextX, nextY); // Hayaleti hareket ettir
+            } 
+            else {
+                currentDirection = rand() % 4; // Rastgele yeni bir yön seç
+            }
+       
+     }
+
     };
 
 class Pacman {
@@ -235,10 +262,10 @@ int main() {
     float offsetX= (CELL_SIZE / 2) - radius;
     float offsetY= (CELL_SIZE / 2) - radius;
 
-    Ghost blinky(9*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color::Red); // Blinky hayaletini oluşturuyoruz
-    Ghost pinky(9*CELL_SIZE+offsetX,8*CELL_SIZE+offsetY,sf::Color::Magenta); // Pinky hayaletini oluşturuyoruz
-    Ghost inky(8*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color::Cyan); // Inky hayaletini oluşturuyoruz
-    Ghost clyde(10*CELL_SIZE+offsetX,9*CELL_SIZE+offsetY,sf::Color(255, 127, 0)); // Clyde hayaletini oluşturuyoruz (turuncu renk)
+    Ghost blinky(9*CELL_SIZE+offsetX,7*CELL_SIZE+offsetY,sf::Color::Red); // Blinky hayaletini oluşturuyoruz
+    Ghost pinky(10*CELL_SIZE+offsetX,7*CELL_SIZE+offsetY,sf::Color::Magenta); // Pinky hayaletini oluşturuyoruz
+    Ghost inky(8*CELL_SIZE+offsetX,7*CELL_SIZE+offsetY,sf::Color::Cyan); // Inky hayaletini oluşturuyoruz
+    Ghost clyde(11*CELL_SIZE+offsetX,7*CELL_SIZE+offsetY,sf::Color(255, 127, 0)); // Clyde hayaletini oluşturuyoruz (turuncu renk)
 
     // pencere açık olduğu sürece çalışır
     while (window.isOpen()) {
@@ -253,6 +280,12 @@ int main() {
 
         // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
+
+        blinky.move(map); // Blinky hayaletini hareket ettir
+        pinky.move(map); // Pinky hayaletini hareket ettir  
+        inky.move(map); // Inky hayaletini hareket ettir
+        clyde.move(map); // Clyde hayaletini hareket ettir
+
         
         // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu
         sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
@@ -302,9 +335,8 @@ int main() {
         inky.draw(window);//   Inky hayaletini ekrana çizer
         clyde.draw(window);//  Clyde hayaletini ekrana çizer
         scoreText.setString("Puan: " + std::to_string(player.score)); // Puanı günceller
-        window.draw(scoreText); // Puanı ekrana çizer
-        // Çizilen her şeyi ekrana yansıtır
-        window.display();
+        window.draw(scoreText); // Puanı ekrana çizer    
+        window.display(); // Çizilen her şeyi ekrana yansıtır
     }// while kapanır
 
     return 0; 
