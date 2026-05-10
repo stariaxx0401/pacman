@@ -40,6 +40,7 @@ class Ghost{
         float speed = 1.5f; // Hayaletin hareket hızı
         int currentDirection = 0; // 0: Sağ, 1: Sol, 2: Yukarı, 3: Aşağı
         sf::Color color; // Hayaletin rengi
+        sf::Clock aiClock; // Yapay zeka yön değiştirme zamanlayıcısı
         
         Ghost(float startX, float startY, sf::Color ghostColor) {
             color = ghostColor;
@@ -47,13 +48,23 @@ class Ghost{
             shape.setFillColor(ghostColor); // Hayaletin rengi
             shape.setPosition(startX, startY); // Başlangıç pozisyonu
         }
+
         void draw(sf::RenderWindow& window) {
-            window.draw(shape);// Hayaleti ekrana çizer
+            window.draw(shape); // Hayaleti ekrana çizer
         }
+
+        // Belirtilen yönde duvar var mı kontrol eder
+        bool canGoDirection(int mapArray[MAP_ROWS][MAP_COLS], int row, int col, int dir) {
+            int nr = row + (dir == 3 ? 1 : dir == 2 ? -1 : 0); // Hedef satır
+            int nc = col + (dir == 0 ? 1 : dir == 1 ? -1 : 0); // Hedef sütun
+            if (nr < 0 || nr >= MAP_ROWS || nc < 0 || nc >= MAP_COLS) return false;
+            return mapArray[nr][nc] != 1;
+        }
+
         void move(int mapArray[MAP_ROWS][MAP_COLS]) {
-            float x = shape.getPosition().x;// Hayaletin mevcut x koordinatı
-            float y = shape.getPosition().y;// Hayaletin mevcut y koordinatı
-            float radius = CELL_SIZE / 2 - 2;// Hayaletin yarıçapı
+            float x = shape.getPosition().x; // Hayaletin mevcut x koordinatı
+            float y = shape.getPosition().y; // Hayaletin mevcut y koordinatı
+            float radius = CELL_SIZE / 2 - 2; // Hayaletin yarıçapı
 
             float nextX = x; float nextY = y;
             if(currentDirection == 0) nextX += speed; // Sağa hareket planla
@@ -67,19 +78,83 @@ class Ghost{
             int bottomRow = (int)(nextY + radius * 2) / CELL_SIZE; // Hayaletin alt köşesinin grid satırı
 
             bool canMove = (topRow >= 0 && bottomRow < MAP_ROWS && leftCol >= 0 && rightCol < MAP_COLS) &&
-                           (mapArray[topRow][leftCol] != 1 && mapArray[topRow][rightCol] != 1 && mapArray[bottomRow][leftCol] != 1 && mapArray[bottomRow][rightCol] != 1);// Hayaletin hareket edebileceği kontrolü
-       
-       
-            if(canMove){
+                           (mapArray[topRow][leftCol] != 1 && mapArray[topRow][rightCol] != 1 && 
+                            mapArray[bottomRow][leftCol] != 1 && mapArray[bottomRow][rightCol] != 1);
+
+            if(canMove) {
                 shape.setPosition(nextX, nextY); // Hayaleti hareket ettir
-            } 
-            else {
+            } else {
                 currentDirection = rand() % 4; // Rastgele yeni bir yön seç
             }
-       
-     }
+        }
+    void moveTowards(int mapArray[MAP_ROWS][MAP_COLS], float pacmanX, float pacmanY) {
+    float radius = CELL_SIZE / 2 - 2;
+    float cx = shape.getPosition().x + radius;
+    float cy = shape.getPosition().y + radius;
+    int col = (int)(cx / CELL_SIZE);
+    int row = (int)(cy / CELL_SIZE);
 
-    };
+    // Yön güncelleme sıklığını biraz azaltmak akıcılığı artırabilir (0.3f -> 0.2f gibi)
+    if (aiClock.getElapsedTime().asSeconds() > 0.2f) {
+        float diffX = pacmanX - cx;
+        float diffY = pacmanY - cy;
+
+        int dirs[4];
+        // Pacman'e olan mesafeye göre yön önceliklerini belirle
+        if (std::abs(diffX) > std::abs(diffY)) {
+            dirs[0] = (diffX > 0) ? 0 : 1; // Yatay
+            dirs[1] = (diffY > 0) ? 3 : 2; // Dikey
+            dirs[2] = (dirs[1] == 3) ? 2 : 3;
+            dirs[3] = (dirs[0] == 0) ? 1 : 0;
+        } else {
+            dirs[0] = (diffY > 0) ? 3 : 2; // Dikey
+            dirs[1] = (diffX > 0) ? 0 : 1; // Yatay
+            dirs[2] = (dirs[1] == 0) ? 1 : 0;
+            dirs[3] = (dirs[0] == 3) ? 2 : 3;
+        }
+
+        bool foundDir = false;
+        for (int i = 0; i < 4; i++) {
+            // Sadece duvar olmayan DEĞİL, aynı zamanda geri dönmesini engelleyen bir kontrol de eklenebilir
+            if (canGoDirection(mapArray, row, col, dirs[i])) {
+                currentDirection = dirs[i];
+                foundDir = true;
+                break;
+            }
+        }
+        
+        // Eğer hiçbir yere gidemiyorsa mevcut yönünü koru veya rastgele seç
+        if(!foundDir && !canGoDirection(mapArray, row, col, currentDirection)) {
+            currentDirection = rand() % 4;
+        }
+
+        aiClock.restart();
+    }
+
+    // Hareket etmek istediği yönü belirle
+    float nextX = shape.getPosition().x;
+    float nextY = shape.getPosition().y;
+    if (currentDirection == 0) nextX += speed;
+    else if (currentDirection == 1) nextX -= speed;
+    else if (currentDirection == 2) nextY -= speed;
+    else if (currentDirection == 3) nextY += speed;
+
+    // Duvar çarpışma kontrolünü daha esnek hale getirelim
+    int lc = (int)(nextX + 2) / CELL_SIZE; // +2/-2 tolerans payları
+    int rc = (int)(nextX + radius * 2 - 2) / CELL_SIZE;
+    int tr = (int)(nextY + 2) / CELL_SIZE;
+    int br = (int)(nextY + radius * 2 - 2) / CELL_SIZE;
+
+    if (tr >= 0 && br < MAP_ROWS && lc >= 0 && rc < MAP_COLS &&
+        mapArray[tr][lc] != 1 && mapArray[tr][rc] != 1 &&
+        mapArray[br][lc] != 1 && mapArray[br][rc] != 1) {
+        shape.setPosition(nextX, nextY);
+    } else {
+        // Eğer duvara çarptıysa hemen yeni bir yön seç ki "titreme" yapmasın
+        currentDirection = rand() % 4;
+    }
+ }     
+};
 
 class Pacman {
 public:
@@ -281,8 +356,8 @@ int main() {
         // Bir önceki framei siler yoksa eski görüntü üstüne çizilir
         window.clear(sf::Color::Black);
 
-        blinky.move(map); // Blinky hayaletini hareket ettir
-        pinky.move(map); // Pinky hayaletini hareket ettir  
+        blinky.moveTowards(map,player.shape.getPosition().x,player.shape.getPosition().y); // Blinky hayaletini hareket ettir
+        pinky.move(map); // Pinky hayaletini hareket ettir
         inky.move(map); // Inky hayaletini hareket ettir
         clyde.move(map); // Clyde hayaletini hareket ettir
 
