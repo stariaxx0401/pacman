@@ -314,6 +314,10 @@ public:
         shape.setOrigin(0, 0);
     }
 };
+bool checkCollision(sf::Vector2f pos1, sf::Vector2f pos2, float radius) {
+    float distance = std::sqrt(std::pow(pos1.x - pos2.x, 2) + std::pow(pos1.y - pos2.y, 2));// İki nesne arasındaki mesafeyi hesaplar
+    return distance < (radius * 1.5f); // Çarpışma algısı için mesafe kontrolü 
+}
 
 int main() {
     // 800x600 yerine grid yapısına tam oturan pencere oluşturuldu
@@ -361,6 +365,16 @@ int main() {
         inky.move(map); // Inky hayaletini hareket ettir
         clyde.move(map); // Clyde hayaletini hareket ettir
 
+        float pacRadius = CELL_SIZE / 2 - 2;
+        sf::Vector2f pacPos = player.shape.getPosition();// Pacmanin merkez pozisyonu
+
+        if(checkCollision(pacPos,blinky.shape.getPosition(), pacRadius) || 
+           checkCollision(pacPos,pinky.shape.getPosition(), pacRadius) || 
+           checkCollision(pacPos,inky.shape.getPosition(), pacRadius) || 
+           checkCollision(pacPos,clyde.shape.getPosition(), pacRadius)) {
+           printf("GAME OVER! PUANIN: %d\n", player.score);// Oyun bittiğinde puanı konsola yazdırır
+        window.close(); // Oyun bittiğinde pencereyi kapatır
+        }
         
         // Duvarlar için kare şeklinde bir görsel şablon oluşturuldu
         sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));
@@ -415,4 +429,5 @@ int main() {
     }// while kapanır
 
     return 0; 
+ 
 }
