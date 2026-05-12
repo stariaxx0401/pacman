@@ -168,6 +168,7 @@ public:
     sf::ConvexShape shape;// Pacmanin görsel temsilcisi
     float speed = 2.0f;// Pacmanin hareket hızı
     int score = 0;// Pacmanin skoru
+    int lives =3;// Pacmanin can sayısı
     sf::Clock animationClock;// Pacmanin animasyonunu kontrol etmek için zamanlayıcı
     float biteAngle = 30.0f;// Pacmanin ağzının açılma açısı
     bool biting = false;// Pacmanin ağzının açılıp kapanma durumunu kontrol etmek için 
@@ -297,9 +298,15 @@ int main() {
     sf::Text scoreText;// Skor metnini oluşturma
     scoreText.setFont(font);// Skor metninin yazı tipini ayarlama
     scoreText.setCharacterSize(16);// Skor metninin karakter boyutunu ayarlama
-    scoreText.setFillColor(sf::Color::White);// Skor metninin rengini ayarlama
+    scoreText.setFillColor(sf::Color::Red);// Skor metninin rengini ayarlama
     scoreText.setPosition(5, MAP_ROWS * CELL_SIZE + 5);// Skor metninin konumunu ayarlama
+    
 
+    sf::Text livesText;// Can sayısı metnini oluşturma
+    livesText.setFont(font);// Can sayısı metninin yazı tipini ayarlama
+    livesText.setCharacterSize(16);// Can sayısı metninin karakter boyutunu ayarlama
+    livesText.setFillColor(sf::Color::Yellow);// Can sayısı metninin rengini ayarlama
+    livesText.setPosition(MAP_ROWS*CELL_SIZE-95,MAP_ROWS*CELL_SIZE+5);// Can sayısı metninin konumunu ayarlama
     Pacman player;
     float radius = CELL_SIZE / 2 - 2;// Karakterlerin yarıçapı
     float offsetX = (CELL_SIZE / 2) - radius;// Hayaletlerin hücre merkezine hizalanması için X ekseninde offset değeri
@@ -352,7 +359,9 @@ int main() {
             // Çarpışma kontrolü eğer Pacman herhangi bir hayaletle çarpışırsa oyuncunun puanını ekrana yazdır ve tüm karakterleri başlangıç pozisyonlarına ışınla
             if (checkCollision(pacPos, blinky.shape.getPosition(), pacRadius) || checkCollision(pacPos, pinky.shape.getPosition(), pacRadius) || checkCollision(pacPos, inky.shape.getPosition(), pacRadius) ||checkCollision(pacPos, clyde.shape.getPosition(), pacRadius)) {
 
-                printf("EYVAH YAKALANDIN! PUANIN: %d\n", player.score);// Çarpışma durumunda oyuncunun puanını konsola yazdırma
+                player.lives--;// Can sayısını azaltma
+
+                printf("EYVAH YAKALANDIN! PUANIN: %d\n KALAN CAN: %d", player.score, player.lives);// Çarpışma durumunda oyuncunun puanını ve kalan can sayısını konsola yazdırma
 
                 // karakterlerin başlangıç pozisyonlarına geri dönmesi
                 player.respawn();
@@ -386,9 +395,11 @@ int main() {
             inky.draw(window);
             clyde.draw(window);
             scoreText.setString("Puan: " + std::to_string(player.score));// Skor metnini güncelleme
+            livesText.setString("Can: " + std::to_string(player.lives));// Can sayısı metnini güncelleme
+            window.draw(livesText);// Can sayısı metnini çizme
             window.draw(scoreText);// Skor metnini çizme
         } //while kapanış
-
+        
         window.display();
     }
     return 0;
