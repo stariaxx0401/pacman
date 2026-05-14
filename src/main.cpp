@@ -361,16 +361,18 @@ int main() {
 
                 player.lives--;// Can sayısını azaltma
 
-                printf("EYVAH YAKALANDIN! PUANIN: %d\n KALAN CAN: %d", player.score, player.lives);// Çarpışma durumunda oyuncunun puanını ve kalan can sayısını konsola yazdırma
-
+                if(player.lives <= 0) {
+                    currentState = GAME_OVER;// Can sayısı sıfır veya daha az olduğunda oyun durumunu GAME_OVER olarak değiştirme
+                }
+                else { 
                 // karakterlerin başlangıç pozisyonlarına geri dönmesi
                 player.respawn();
                 blinky.respawn();
                 pinky.respawn();
                 inky.respawn();
                 clyde.respawn();
+                }
             }
-
             sf::RectangleShape wall(sf::Vector2f(CELL_SIZE - 1.0f, CELL_SIZE - 1.0f));// Duvarların görsel temsilcisi
             wall.setFillColor(sf::Color::Blue);// Duvarların rengi
             sf::CircleShape food(2);// Noktaların görsel temsilcisi
@@ -399,6 +401,24 @@ int main() {
             window.draw(livesText);// Can sayısı metnini çizme
             window.draw(scoreText);// Skor metnini çizme
         } //while kapanış
+        
+         else if(currentState ==GAME_OVER)
+            { 
+                sf::Text gameOverText;// Oyun bitti metnini oluşturma
+                gameOverText.setFont(font);// Oyun bitti metninin yazı tipini ayarlama
+                gameOverText.setString("------------Oyun Bitti------------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Oyun bitti metnini ayarlama
+                gameOverText.setCharacterSize(25);// Oyun bitti metninin karakter boyutunu ayarlama
+                gameOverText.setFillColor(sf::Color::Red);// Oyun bitti metninin rengini ayarlama
+                
+                sf::FloatRect textRect = gameOverText.getLocalBounds();// Oyun bitti metninin boyutlarını alma
+                gameOverText.setOrigin(textRect.left + textRect.width/2.0f,textRect.top + textRect.height / 2.0f);// Oyun bitti metninin merkezini hesaplama
+                gameOverText.setPosition(sf::Vector2f((MAP_COLS * CELL_SIZE) / 2.0f, (MAP_ROWS * CELL_SIZE) / 2.0f));// Oyun bitti metninin konumunu ayarlama
+                window.draw(gameOverText);// Oyun bitti metnini çizme
+                
+                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+                    window.close();// Escape tuşuna basıldığında pencereyi kapatma
+                }
+            }
         
         window.display();
     }
