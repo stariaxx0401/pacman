@@ -419,7 +419,21 @@ int main() {
                     window.close();// Escape tuşuna basıldığında pencereyi kapatma
                 }
             }
-        
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
+                // Oyun bitti ekranında Enter tuşuna basıldığında oyunu yeniden başlatmae
+                player.score = 0;// Skoru sıfırlama
+                player.lives = 3;// Can sayısını sıfırlama
+                // Karakterleri başlangıç pozisyonlarına geri döndürme
+                player.respawn();
+                blinky.respawn();
+                pinky.respawn();
+                inky.respawn();
+                clyde.respawn();
+                currentState = PLAYING;// Oyun durumunu PLAYING olarak değiştirme
+            }
+            if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
+                window.close();// Escape tuşuna basıldığında pencereyi kapatma
+            }
         window.display();
     }
     return 0;
