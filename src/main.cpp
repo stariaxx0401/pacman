@@ -7,7 +7,9 @@
 enum GameState {
     START,
     PLAYING,
-    GAME_OVER
+    GAME_OVER,
+    WIN
+    
 };
 GameState currentState = START;// oyunun başlangıç durumunu START olarak ayarlama
 
@@ -73,6 +75,14 @@ void resetMap() {
            map[r][c] = initialMap[r][c];
         }
     }
+}
+bool checkWin(){
+    for(int r=0;r<MAP_ROWS;r++) {
+        for(int c=0;c<MAP_COLS;c++) {
+           if(map[r][c] == 0) return false;// Eğer hala yenecek nokta varsa oyunu kazanamamış demektir
+        }
+    }
+    return true;// Eğer yenecek nokta yoksa oyunu kazanmış demektir
 }
 
 class Ghost {
@@ -431,7 +441,10 @@ int main() {
             livesText.setString("Can: " + std::to_string(player.lives));// Can sayısı metnini güncelleme
             window.draw(livesText);// Can sayısı metnini çizme
             window.draw(scoreText);// Skor metnini çizme
-        } //while kapanış
+            if(checkWin()) {
+                currentState = WIN;// Tüm noktalar yenildiğinde oyun durumunu WIN olarak değiştirme
+            }
+        }//else if kapanış
         
          else if(currentState ==GAME_OVER)
             { 
@@ -450,6 +463,26 @@ int main() {
                     window.close();// Escape tuşuna basıldığında pencereyi kapatma
                 }
             }
+            else if(currentState == WIN) {
+                sf::Text winText;// Kazanma metnini oluşturma
+                winText.setFont(font);// Kazanma metninin yazı tipini ayarlama
+                winText.setString("------------Tebrikler Kazandiniz------------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Kazanma metnini ayarlama
+                winText.setCharacterSize(25);// Kazanma metninin karakter boyutunu ayarlama
+                winText.setFillColor(sf::Color::Green);// Kazanma metninin rengini ayarlama 
+
+                sf::FloatRect tr = winText.getLocalBounds();// Kazanma metninin boyutlarını alma
+                winText.setOrigin(tr.left + tr.width/2.0f,tr.top + tr.height / 2.0f);// Kazanma metninin merkezini hesaplama
+                winText.setPosition(sf::Vector2f((MAP_COLS * CELL_SIZE) / 2.0f, (MAP_ROWS * CELL_SIZE) / 2.0f));// Kazanma metninin konumunu ayarlama
+                window.draw(winText);// Kazanma metnini çizme
+                if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
+                    player.lives = 3;// Can sayısını sıfırlama
+                    player.score = 0;// Skoru sıfırlama
+                    player.respawn();// Pacmanin başlangıç pozisyonuna geri dönmesi
+                    resetMap();// Haritayı başlangıç durumuna sıfırlama
+                    currentState = PLAYING;// Oyun durumunu PLAYING olarak değiştirmee
+                }
+            }
+         if(currentState == GAME_OVER || currentState == WIN) {
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Enter)) {
                 // Oyun bitti ekranında Enter tuşuna basıldığında oyunu yeniden başlatmae
                 player.score = 0;// Skoru sıfırlama
@@ -464,6 +497,7 @@ int main() {
 
                 resetMap();// Haritayı başlangıç durumuna sıfırlama
             }
+        }
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();// Escape tuşuna basıldığında pencereyi kapatma
             }
