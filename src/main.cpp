@@ -44,6 +44,37 @@ int map[MAP_ROWS][MAP_COLS] = {
     {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
 
+const int initialMap[MAP_ROWS][MAP_COLS] = {
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,2,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1},
+    {1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1},
+    {1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1},
+    {1,1,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,1,1},
+    {1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,1},
+    {1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,1,1,1,1},
+    {0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0},
+    {1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1},
+    {1,1,1,1,0,1,0,0,0,0,0,0,0,1,0,1,1,1,1},
+    {1,1,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,1,1},
+    {1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1},
+    {1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1},
+    {1,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1},
+    {1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1},
+    {1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1},
+    {1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1},
+    {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+};
+void resetMap() {
+    for(int r=0;r<MAP_ROWS;r++) {
+        for(int c=0;c<MAP_COLS;c++) {
+           map[r][c] = initialMap[r][c];
+        }
+    }
+}
+
 class Ghost {
 public:
     sf::CircleShape shape;// Hayaletin görsel temsilcisi
@@ -425,11 +456,13 @@ int main() {
                 player.lives = 3;// Can sayısını sıfırlama
                 // Karakterleri başlangıç pozisyonlarına geri döndürme
                 player.respawn();
+                currentState = PLAYING;
                 blinky.respawn();
                 pinky.respawn();
                 inky.respawn();
                 clyde.respawn();
-                currentState = PLAYING;// Oyun durumunu PLAYING olarak değiştirme
+
+                resetMap();// Haritayı başlangıç durumuna sıfırlama
             }
             if(sf::Keyboard::isKeyPressed(sf::Keyboard::Escape)) {
                 window.close();// Escape tuşuna basıldığında pencereyi kapatma
