@@ -2,6 +2,7 @@
 #include <cmath> // Açısal ve matematiksel işlemler için
 #include <string> // puan gösterimi için
 #include <cstdlib> // Rastgele yön seçimi için
+#include <SFML/Audio.hpp> // Ses kütüphanesi
 
 // oyun durumlarını tanımlamak için enum
 enum GameState {
@@ -244,7 +245,7 @@ public:
         }
     }
 
-    void handleInput(int mapArray[MAP_ROWS][MAP_COLS]) {// Klavye girişlerini işleme ve Pacmanin hareketini kontrol etme
+    void handleInput(int mapArray[MAP_ROWS][MAP_COLS],sf::Sound& eatSound) {// Klavye girişlerini işleme ve Pacmanin hareketini kontrol etme
         float nextX = shape.getPosition().x;// Mevcut X pozisyonu
         float nextY = shape.getPosition().y;// Mevcut Y pozisyonu
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Up)) {// Yukarı hareket tuşu kontrolü
@@ -287,14 +288,18 @@ public:
                     if (mapArray[centerGridY][centerGridX] == 0) {// Eğer merkez hücrede bir nokta varsa
                         mapArray[centerGridY][centerGridX] = 2;// Noktayı yeme işlemi
                         score += 10;// Skoru artırma
+                        
+                        if(currentState==PLAYING&&eatSound.getStatus()!= sf::Sound::Playing) {  
+                        eatSound.play();// Nokta yeme sesini çalma
                     }
                 }
             }
         }
         updateAnimation();// Pacmanin ağzının açılıp kapanma animasyonunu güncelleme
     }
+ }
 
-    void updateAnimation() {// Pacmanin ağzının açılıp kapanma animasyonunu kontrol etme
+    void updateAnimation(){ // Pacmanin ağzının açılıp kapanma animasyonunu kontrol etme
         if (animationClock.getElapsedTime().asSeconds() > 0.015f) {// Animasyon güncelleme süresi kontrolü
             if (biting) {// Eğer Pacman ağzını açıyorsa
                 biteAngle += 8.0f;// Ağzın açılma açısını artırma
@@ -310,7 +315,7 @@ public:
         }
     }
 
-    void draw(sf::RenderWindow& window) {// Pacmanin çizimi
+    void draw(sf::RenderWindow& window){// Pacmanin çizimi
         float rotation = 0.0f;// Pacmanin yönüne göre döndürme açısını belirleme
         if (currentDirection == 1) rotation = 180.0f;// Sol hareket yönünde 180 derece döndürme
         else if (currentDirection == 2) rotation = 270.0f;// Yukarı hareket yönünde 270 derece döndürme
@@ -335,7 +340,9 @@ int main() {
     sf::RenderWindow window(sf::VideoMode(MAP_COLS * CELL_SIZE, MAP_ROWS * CELL_SIZE + 30), "Pacman Test");// Oyun penceresini oluşturma
     window.setFramerateLimit(60);// Oyun penceresinin kare hızını sınırlama
     sf::Font font;// Yazı tipini yükleme
-    font.loadFromFile("arial.ttf");// Arial yazı tipini yükleme 
+    if (!font.loadFromFile("arial.ttf")) {
+        printf("Yazi tipi yuklenemedi! Klasorde arial.ttf oldugundan emin olun.\n");
+    } 
     sf::Text scoreText;// Skor metnini oluşturma
     scoreText.setFont(font);// Skor metninin yazı tipini ayarlama
     scoreText.setCharacterSize(16);// Skor metninin karakter boyutunu ayarlama
@@ -348,6 +355,32 @@ int main() {
     livesText.setCharacterSize(16);// Can sayısı metninin karakter boyutunu ayarlama
     livesText.setFillColor(sf::Color::Yellow);// Can sayısı metninin rengini ayarlama
     livesText.setPosition(MAP_ROWS*CELL_SIZE-95,MAP_ROWS*CELL_SIZE+5);// Can sayısı metninin konumunu ayarlama
+    
+    sf::Music backgroundMusic; // Arka plan müziği nesnesi
+    if(!backgroundMusic.openFromFile("freesound_community-playing-pac-man-6783.mp3")) {
+    printf("Muzik yuklenemedi!\n");
+    }
+    backgroundMusic.setLoop(true); // Döngüye alma
+    backgroundMusic.setVolume(30); // Ses seviyesi
+    backgroundMusic.play(); // Müziği çalma
+   
+
+    sf::SoundBuffer eatBuffer; // Nokta yeme sesi tamponu
+    if(!eatBuffer.loadFromFile("nahtt-eat-323883.mp3")) {
+        printf("Yeme sesi yuklenemedi!\n");
+    }
+    sf::Sound eatSound; // Nokta yeme sesi nesnesi
+    eatSound.setBuffer(eatBuffer); // Tamponu ayarlama
+    eatSound.setVolume(60); // Ses seviyesi
+
+    sf::SoundBuffer deathBuffer;// Ölüm sesi tamponu
+    if (!deathBuffer.loadFromFile("8d82b5_pacman_dies_sound_effect.mp3")) {
+    printf("Olum sesi yuklenemedi! Dosya adini kontrol et.\n");
+    }
+    sf::Sound deathSound; // Ölüm sesi nesnesi
+    deathSound.setBuffer(deathBuffer);// Tamponu ayarlama
+    deathSound.setVolume(50);// Ses seviyesi
+
     Pacman player;
     float radius = CELL_SIZE / 2 - 2;// Karakterlerin yarıçapı
     float offsetX = (CELL_SIZE / 2) - radius;// Hayaletlerin hücre merkezine hizalanması için X ekseninde offset değeri
@@ -392,7 +425,7 @@ int main() {
             pinky.move(map);// Pinky hayaletinin rastgele hareket etmesi
             inky.move(map);// Inky hayaletinin rastgele hareket etmesi
             clyde.move(map);// Clyde hayaletinin rastgele hareket etmesi
-            player.handleInput(map);// Pacmanin klavye girişlerini işleme ve hareketini kontrol etme
+            player.handleInput(map, eatSound);// Pacmanin klavye girişlerini işleme ve hareketini kontrol etme
 
             float pacRadius = CELL_SIZE / 2 - 2;//  Pacmanin yarıçapı
             sf::Vector2f pacPos = player.shape.getPosition();   // Pacmanin mevcut pozisyonu
@@ -400,10 +433,13 @@ int main() {
             // Çarpışma kontrolü eğer Pacman herhangi bir hayaletle çarpışırsa oyuncunun puanını ekrana yazdır ve tüm karakterleri başlangıç pozisyonlarına ışınla
             if (checkCollision(pacPos, blinky.shape.getPosition(), pacRadius) || checkCollision(pacPos, pinky.shape.getPosition(), pacRadius) || checkCollision(pacPos, inky.shape.getPosition(), pacRadius) ||checkCollision(pacPos, clyde.shape.getPosition(), pacRadius)) {
 
+                deathSound.play(); // Ölüm sesini çalma
+
                 player.lives--;// Can sayısını azaltma
 
                 if(player.lives <= 0) {
                     currentState = GAME_OVER;// Can sayısı sıfır veya daha az olduğunda oyun durumunu GAME_OVER olarak değiştirme
+                    backgroundMusic.stop(); // Arka plan müziğini durdurma
                 }
                 else { 
                 // karakterlerin başlangıç pozisyonlarına geri dönmesi
@@ -443,14 +479,15 @@ int main() {
             window.draw(scoreText);// Skor metnini çizme
             if(checkWin()) {
                 currentState = WIN;// Tüm noktalar yenildiğinde oyun durumunu WIN olarak değiştirme
-            }
+                backgroundMusic.stop(); // Arka plan müziğini durdurma
+            } 
         }//else if kapanış
         
          else if(currentState ==GAME_OVER)
             { 
                 sf::Text gameOverText;// Oyun bitti metnini oluşturma
                 gameOverText.setFont(font);// Oyun bitti metninin yazı tipini ayarlama
-                gameOverText.setString("------------Oyun Bitti------------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Oyun bitti metnini ayarlama
+                gameOverText.setString("----------Oyun Bitti----------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Oyun bitti metnini ayarlama
                 gameOverText.setCharacterSize(25);// Oyun bitti metninin karakter boyutunu ayarlama
                 gameOverText.setFillColor(sf::Color::Red);// Oyun bitti metninin rengini ayarlama
                 
@@ -466,7 +503,7 @@ int main() {
             else if(currentState == WIN) {
                 sf::Text winText;// Kazanma metnini oluşturma
                 winText.setFont(font);// Kazanma metninin yazı tipini ayarlama
-                winText.setString("------------Tebrikler Kazandiniz------------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Kazanma metnini ayarlama
+                winText.setString("----------Tebrikler Kazandiniz---------\nSkorun: " + std::to_string(player.score) + "\nTekrar oynamak icin ENTER'a bas");// Kazanma metnini ayarlama
                 winText.setCharacterSize(25);// Kazanma metninin karakter boyutunu ayarlama
                 winText.setFillColor(sf::Color::Green);// Kazanma metninin rengini ayarlama 
 
@@ -480,6 +517,7 @@ int main() {
                     player.respawn();// Pacmanin başlangıç pozisyonuna geri dönmesi
                     resetMap();// Haritayı başlangıç durumuna sıfırlama
                     currentState = PLAYING;// Oyun durumunu PLAYING olarak değiştirmee
+                    backgroundMusic.play();// Arka plan müziğini başlatma
                 }
             }
          if(currentState == GAME_OVER || currentState == WIN) {
@@ -490,6 +528,7 @@ int main() {
                 // Karakterleri başlangıç pozisyonlarına geri döndürme
                 player.respawn();
                 currentState = PLAYING;
+                backgroundMusic.play(); // Müziği başlat
                 blinky.respawn();
                 pinky.respawn();
                 inky.respawn();
