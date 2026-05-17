@@ -202,6 +202,15 @@ public:
         else {
             currentDirection = rand() % 4;// Geçerli yön geçersizse rastgele yeni bir yön seç
         }
+          // Sol taraftan çıkarsa sağdan sok
+        if (shape.getPosition().x < -CELL_SIZE) {
+        shape.setPosition((MAP_COLS - 1) * CELL_SIZE, shape.getPosition().y);
+        }
+        // Sağ taraftan çıkarsa soldan sok
+       else if (shape.getPosition().x > MAP_COLS * CELL_SIZE) {
+       shape.setPosition(0, shape.getPosition().y);
+        }
+
     }
 };
 
@@ -297,6 +306,15 @@ public:
         }
         updateAnimation();// Pacmanin ağzının açılıp kapanma animasyonunu güncelleme
     }
+        if (nextX<0){
+         nextX=(MAP_COLS-1)*CELL_SIZE-2;
+         shape.setPosition(nextX,nextY);
+        }
+        else if (nextX>(MAP_COLS-1)*CELL_SIZE){
+         nextX=2;
+         shape.setPosition(nextX,nextY);
+ } 
+ 
  }
 
     void updateAnimation(){ // Pacmanin ağzının açılıp kapanma animasyonunu kontrol etme
@@ -467,7 +485,7 @@ int main() {
                     }//else if kapanış
                 }//ic for kapanış
             }//for kapanış
-
+            
             player.draw(window);
             blinky.draw(window);
             pinky.draw(window);
