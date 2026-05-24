@@ -4,8 +4,9 @@ Bu proje, C++ programlama dili ve **SFML 2.6.2 (Simple and Fast Multimedia Libra
 
 ---
 
-## 📸 Ekran Görüntüleri
+## 📸 Ekran Görüntüleri Ve Demo Video
 
+![Pacman Oyun Demosu](screenshots/demo.gif)
 ![Baslangic](screenshots/baslangıc.png)
 ![Oyun](screenshots/oynanış.png)
 ![GameOver](screenshots/gameover.png)
@@ -68,17 +69,29 @@ Oyun alanı `21x19` boyutlarında bir matris (`map[MAP_ROWS][MAP_COLS]`) üzerin
 Projenin derlenebilmesi ve medya dosyalarının eksiksiz yüklenmesi için klasör düzeni aşağıdaki gibi olmalıdır:
 
 ```text
-Pacman-SFML/
+cpp/
 │
 ├── .git/                                # Git versiyon kontrol klasörü
 ├── .vscode/                             # VS Code derleme ayarları
+│   ├── c_cpp_properties.json
 │   ├── tasks.json
 │   └── launch.json
 │
 ├── src/                                 # Proje kaynak kod klasörü
-├── main.cpp                             # Oyunun ana kaynak kodu
+│   ├── main.cpp                         # Ana oyun döngüsü
+│   ├── Ghost.h                          # Hayalet sınıfı
+│   ├── Pacman.h                         # Pacman sınıfı
+│   └── Constants.h                      # Sabitler ve enum tanımları
+│
+├── screenshots/                         # Ekran görüntüleri ve Demo
+│   ├── baslangic.png
+│   ├── oyun.png
+│   ├── gameover.png
+│   ├── kazanma.png
+│   └── demo.gif                         # README için oyun içi hareketli demo videosu 
 │
 ├── CMakeLists.txt                       # CMake yapılandırma dosyası
+├── README.md                            # Proje açıklama dosyası
 ├── .gitignore                           # Git takip dışı listesi
 ├── InstallationLog.txt                  # Kurulum günlük dosyası
 │
@@ -89,14 +102,15 @@ Pacman-SFML/
 ├── nahtt-eat-323883.mp3                 # Nokta yeme ses efekti
 ├── 8d82b5_pacman_dies_sound_effect.mp3  # Ölüm ses efekti
 │
-├── openal32.dll                         # SFML Ses modülü için gerekli kütüphane
+├── openal32.dll                         # SFML ses modülü için gerekli kütüphane
 ├── libgcc_s_seh-1.dll                   # Derleyici çalışma zamanı kütüphanesi
 ├── libstdc++-6.dll                      # C++ standart kütüphanesi
 ├── libwinpthread-1.dll                  # Windows thread kütüphanesi
 │
-└── sfml-*.dll                           # SFML Dinamik kütüphane dosyaları
-    ├── sfml-audio-2.dll                 # (Klasördeki sfml-audio-d-2.dll gibi)
-    ├── sfml-graphics-2.dll              # (bütün debug ve release sürümleri dahil)
+└── sfml-*.dll                           # SFML dinamik kütüphane dosyaları
+    ├── sfml-audio-2.dll
+    ├── sfml-graphics-2.dll
     ├── sfml-network-2.dll
     ├── sfml-system-2.dll
     └── sfml-window-2.dll
+``` 
